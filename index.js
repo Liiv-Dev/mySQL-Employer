@@ -4,7 +4,7 @@ const dbConnection = require('./config/connection');
 // Attempts mysql connection
 dbConnection.connect((err) => {
     err ? console.log('Error connecting to database', err) :
-    console.log('Connected to database')
+    console.log('Connected to database');
     initApp();
 });
 
@@ -58,10 +58,10 @@ function initApp () {
                     addRole(); // Uses addRole function
                 break;
                 case 'Add an employee' :
-                    addEmployee();
+                    addEmployee();  // Uses addEmployee function
                 break;
                 case 'Update an employee role' :
-                    updateEmployeeRole();
+                    updateEmployeeRole(); // Uses updateEmployee function
                 break;
                 case 'Exit' :
                     dbConnection.end(); // Ends connection to db
@@ -72,7 +72,7 @@ function initApp () {
         })
 }
 
-//Function allows user to add department name to database
+// FUNCTION ADDS DEPARTMENTS TO DATABASE 
 function addDepartment() {
     inquirer
         .prompt([
@@ -90,123 +90,147 @@ function addDepartment() {
 
             // SQL query to insert the new departments into the database
             dbConnection.query('INSERT INTO departments (department_name) VALUES (?)', [departmentName], (err, results) => {
-                err ? console.log(err) : console.log(`Department ${departmentName} inserted successfully`)
+                err ? console.log(err) : console.log(`Department ${departmentName} inserted successfully`);
                 initApp();
             })
         })
         .catch((err) => {
             console.error(err);
-            initApp()
-        })
-};
-
-// Function allows user to add roles to database
-function addRole() {
-    inquirer
-    .prompt([
-        {
-            type: 'input',
-            name: 'roleName',
-            message: 'Enter the name for the new role:',
-            validate: function (input) {
-                return input !== '' ? true : 'Please enter valid title for role';
-            },
-        },
-        {
-            type: 'number',
-            name: 'roleSalary',
-            message: 'Enter the salary for the new role:',
-            validate: function (input) {
-                return input > 0 ? true : 'Please enter valid salary'
-            },
-        },
-        {
-            type: 'input',
-            name: 'roleDepartment',
-            message: 'Enter the department for the new role:',
-            // choices: 
-        },
-    ])
-    .then ((answers) => {
-        const {newRole, roleSalary, roleDepartment} = answers;
-
-        // SQL query to insert the new roles into the database
-        dbConnection.query('INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)', [newRole, roleSalary, roleDepartment], (err, results) => {
-            err ? console.log(err) : console.log(`New role ${newRole} inserted successfully`)
             initApp();
         })
-    })
-    .catch((err) => {
-        console.error(err);
-        initApp()
-    })
 };
 
-// Function allows user to add employee info to database
-function addEmployee() {
-    inquirer
-        .prompt ([
-            {
-                type: 'input',
-                name: 'firstName',
-                message: "Enters employee's first name",
-                validate: function (input) {
-                    return input !== '' ? true : "Please enter the employee's first name";
-                },
-            },
-            {
-                type: 'input',
-                name: 'lastName',
-                message: "Enters employee's last name",
-                validate: function (input) {
-                    return input !== '' ? true : "Please enter the employee's last name";
-                },
-            },
-            {
-                // FIX FUNCTION FOR EMPLOYEE ROLES
-                type: 'input',
-                name: 'role',
-                message: "Enters employee's role",
-                validate: function (input) {
-                    return input !== '' ? true : "Please enter the employee's first name";
-                },
-            },
-            {
-                type: 'input',
-                name: 'manager',
-                message: "Enters employees manager",
-                validate: function (input) {
-                    return input !== '' ? true : "Please enter employee's manager";
-                },
-            },
-        ])
-        . then((answers) => {
-            const firstName = answers.firstName;
-            const lastName = answers.lastName;
-            const role = answers.role;
-            const manager = answers.manager;
-
-            // SQL query to insert the new employee into the database
-            dbConnection.query(
-                'INSERT INTO employees (first_name, last_name, role, manager_id) VALUES (?, ?, ?, ?)',
-                [firstName, lastName, role, manager],
-                (err, results) => {
-                    if (err) {
-                        console.error(err);
-                    } else {
-                        console.log(`Employee '${firstName} ${lastName}' added successfully!`);
-                    }
-                    initApp(); // Return to the main menu
-                }
-            );
-        })
-        .catch((err) => {
+// FUNCTION TO ADD NEW ROLES TO DATABASE
+function addRole() {
+    // Fetch department names from the database
+    dbConnection.query('SELECT id, department_name FROM departments', (err, departments) => {
+        if (err) {
             console.error(err);
-            initApp()
-        })
-};
+            initApp();
+            return;
+        }
+
+        // Extract department names and create a list for Inquirer prompt
+        const departmentChoices = departments.map((department) => ({
+            value: department.id,
+            name: department.department_name,
+        }));
+
+        inquirer
+            .prompt([
+                {
+                    type: 'input',
+                    name: 'roleName',
+                    message: 'Enter the name for the new role:',
+                    validate: function(input) {
+                        return input !== '' ? true : 'Please enter a valid role name';
+                    },
+                },
+                {
+                    type: 'number',
+                    name: 'roleSalary',
+                    message: 'Enter the salary for the new role:',
+                    validate: function(input) {
+                        return !isNaN(input) && input > 0 ? true : 'Please enter a valid salary';
+                    },
+                },
+                {
+                    type: 'list',
+                    name: 'roleDepartment',
+                    message: 'Select the department for the new role:',
+                    choices: departmentChoices,
+                },
+            ])
+            .then((answers) => {
+                const { roleName, roleSalary, roleDepartment } = answers;
+
+                // Perform database insertion query using dbConnection
+                dbConnection.query(
+                    'INSERT INTO roles (title, salary, department_id) VALUES (?, ?, ?)',
+                    [roleName, roleSalary, roleDepartment],
+                    (err, results) => {
+                        if (err) {
+                            console.error(err);
+                        } else {
+                            console.log(`Role '${roleName}' added successfully!`);
+                        }
+                        initApp(); // Return to the main menu
+                    }
+                );
+            })
+            .catch((error) => {
+                console.error(error);
+                initApp(); // Return to the main menu in case of an error
+            });
+    });
+}
+
+// FUNCTION TO ADD EMPLOYEE TO DATABASE
+function addEmployee() {
+    
+    // Fetch role titles from the database
+    dbConnection.query('SELECT id, title FROM roles', (err, roles) => {
+        if (err) {
+            console.error(err);
+            initApp(); // Return to the main menu in case of an error
+            return;
+        }
+
+        // Extract role titles and create a list for Inquirer prompt
+        const roleChoices = roles.map((role) => ({
+            value: role.id,
+            name: role.title,
+        }));
+
+        inquirer
+            .prompt([
+                {
+                    type: 'input',
+                    name: 'firstName',
+                    message: "Enter employee's first name",
+                    validate: function (input) {
+                        return input !== '' ? true : "Please enter the employee's first name";
+                    },
+                },
+                {
+                    type: 'input',
+                    name: 'lastName',
+                    message: "Enter employee's last name",
+                    validate: function (input) {
+                        return input !== '' ? true : "Please enter the employee's last name";
+                    },
+                },
+                {
+                    type: 'list',
+                    name: 'role',
+                    message: "Choose employee's role",
+                    choices: roleChoices,
+                },
+            ])
+            .then((answers) => {
+                const { firstName, lastName, role } = answers;
+
+                dbConnection.query(
+                    'INSERT INTO employees (first_name, last_name, role_id) VALUES (?, ?, ?)',
+                    [firstName, lastName, role],
+                    (err, results) => {
+                        if (err) {
+                            console.error(err);
+                        } else {
+                            console.log(`Employee '${firstName} ${lastName}' added successfully!`);
+                        }
+                        initApp(); // Return to the main menu
+                    }
+                );
+            })
+            .catch((error) => {
+                console.error(error);
+                initApp(); // Return to the main menu in case of an error
+            });
+    });
+}
 
 // Functions allows user to update employee information
 function updateEmployeeRole() {
-    
+
 }
