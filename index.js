@@ -102,6 +102,7 @@ function addDepartment() {
 
 // FUNCTION TO ADD NEW ROLES TO DATABASE
 function addRole() {
+    
     // Fetch department names from the database
     dbConnection.query('SELECT id, department_name FROM departments', (err, departments) => {
         if (err) {
@@ -167,7 +168,7 @@ function addRole() {
 
 // FUNCTION TO ADD EMPLOYEE TO DATABASE
 function addEmployee() {
-    
+
     // Fetch role titles from the database
     dbConnection.query('SELECT id, title FROM roles', (err, roles) => {
         if (err) {
@@ -230,7 +231,72 @@ function addEmployee() {
     });
 }
 
-// Functions allows user to update employee information
+// Function to update an employee's role
 function updateEmployeeRole() {
+    // Fetch employees' names and IDs from the database
+    dbConnection.query('SELECT id, CONCAT(first_name, " ", last_name) AS employee_name FROM employees', (err, employees) => {
+        if (err) {
+            console.error(err);
+            initApp(); // Return to the main menu in case of an error
+            return;
+        }
 
+        // Extract employee names and create a list for Inquirer prompt
+        const employeeChoices = employees.map((employee) => ({
+            value: employee.id,
+            name: employee.employee_name,
+        }));
+
+        // Fetch role titles and IDs from the database
+        dbConnection.query('SELECT id, title FROM roles', (err, roles) => {
+            if (err) {
+                console.error(err);
+                initApp(); // Return to the main menu in case of an error
+                return;
+            }
+
+            // Extract role titles and create a list for Inquirer prompt
+            const roleChoices = roles.map((role) => ({
+                value: role.id,
+                name: role.title,
+            }));
+
+            inquirer
+                .prompt([
+                    {
+                        type: 'list',
+                        name: 'employeeId',
+                        message: 'Select the employee to update:',
+                        choices: employeeChoices,
+                    },
+                    {
+                        type: 'list',
+                        name: 'newRoleId',
+                        message: 'Select the new role for the employee:',
+                        choices: roleChoices,
+                    },
+                ])
+                .then((answers) => {
+                    const { employeeId, newRoleId } = answers;
+
+                    // Update the employee's role in the database
+                    dbConnection.query(
+                        'UPDATE employees SET role_id = ? WHERE id = ?',
+                        [newRoleId, employeeId],
+                        (err, results) => {
+                            if (err) {
+                                console.error(err);
+                            } else {
+                                console.log('Employee role updated successfully!');
+                            }
+                            initApp(); // Return to the main menu
+                        }
+                    );
+                })
+                .catch((error) => {
+                    console.error(error);
+                    initApp(); // Return to the main menu in case of an error
+                });
+        });
+    });
 }
