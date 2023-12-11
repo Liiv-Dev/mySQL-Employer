@@ -1,5 +1,8 @@
 # mySQL-Employer
 
+## Description
+This project gives new users the opportunity to view and manipulate a database. The Project was built using Js, Node, Inquirer, and mySQL
+
 #User Story
 GIVEN a command-line application that accepts user input
 WHEN I start the application
@@ -16,6 +19,39 @@ WHEN I choose to add a role
 THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database
 WHEN I choose to add an employee
 THEN I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database
-
 WHEN I choose to update an employee role
-THEN I am prompted to select an employee to update and their new role and this information is updated in the database
+THEN I am prompted to select an employee to update and their new role and this information is updated in the 
+
+## Table of Contents (Optional)
+
+- [Installation](#installation)
+- [Usage](#usage)
+- [Credits](#credits)
+- [License](#license)
+
+## Installation
+
+Clone repo and run 'node index.js' in terminal 
+
+## Usage
+
+The Inquirer choice selection gives the user the power to manipulate the database. Allowing them to add departments, roles, and employees for their company
+
+## Credits
+
+No collaborators
+
+## License
+
+N/a
+
+## Badges
+
+N/a
+
+## Features
+
+## How to Contribute
+
+
+## Tests
