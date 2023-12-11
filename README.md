@@ -3,6 +3,8 @@
 ## Description
 This project gives new users the opportunity to view and manipulate a database. The Project was built using Js, Node, Inquirer, and mySQL
 
+YT Demo Link: https://youtu.be/9a82pH7_9NQ
+
 #User Story
 GIVEN a command-line application that accepts user input
 WHEN I start the application
